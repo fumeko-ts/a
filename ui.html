@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    button.toggle { z-index: 400; width: 80px; height: 40px; border: none; cursor: pointer; font-size: 16px; font-weight: bold; margin: 5px; }
+    #button1 { background-color: rgba(109,255,93,1); }
+    #button1:hover { background-color: rgba(208,85,238,1); }
+    #button2 { background-color: rgba(99,242,255,1); }
+    #button2:hover { background-color: rgba(174,200,70,1); }
+    #canvasContainer { position: relative; display: none; margin-top: 10px; }
+    #pixelCanvas { display: block; image-rendering: pixelated; }
+    .slot-grid { position: absolute; display: grid; grid-template-columns: repeat(9, 18px); grid-template-rows: repeat(4, 18px); gap: 1px; left: 50%; bottom: 10px; transform: translateX(-50%); pointer-events: none; }
+    .slot-grid button { width: 18px; height: 18px; background: transparent; border: none; opacity: 0; cursor: pointer; pointer-events: auto; }
+    .slot-grid button:hover { opacity: 0.45; background-image: url('sprites/textures/atemp/white.png'); background-size: cover; background-position: center; image-rendering: pixelated; }
+  </style>
+</head>
+<body>
+  <button id="button1" class="toggle" onclick="buttonClick(1)">Button 1</button>
+  <button id="button2" class="toggle" onclick="buttonClick(2)">Button 2</button>
+
+  <div id="canvasContainer">
+    <canvas id="pixelCanvas"></canvas>
+    <div class="slot-grid" id="slotGrid"></div>
+  </div>
+
+  <script>
+    const panels = { 1: null, 2: document.getElementById('canvasContainer') };
+
+    function buttonClick(num) {
+      for (const key in panels) {
+        if (panels[key]) panels[key].style.display = key == num ? 'block' : 'none';
+      }
+      if (num === 2) initCanvasAndSlots();
+    }
+
+    function convertImageToBase64(img, callback) {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = img.width;
+      tempCanvas.height = img.height;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.drawImage(img, 0, 0);
+      const b64 = tempCanvas.toDataURL('image/png');
+      callback(b64);
+    }
+
+    function initCanvasAndSlots() {
+      const container = document.getElementById('canvasContainer');
+      const canvas = document.getElementById('pixelCanvas');
+      const ctx = canvas.getContext('2d');
+      const scale = 3;
+
+      const img = new Image();
+      img.src = 'sprites/assets/minecraft/textures/gui/container/dispenser.png';
+      img.onload = () => {
+        convertImageToBase64(img, (base64Src) => {
+          const b64Img = new Image();
+          b64Img.src = base64Src;
+          b64Img.onload = () => {
+            canvas.width = b64Img.width * scale;
+            canvas.height = b64Img.height * scale;
+            container.style.width = canvas.width + "px";
+            container.style.height = canvas.height + "px";
+
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(b64Img, 0, 0, canvas.width, canvas.height);
+
+            const slotGrid = document.getElementById('slotGrid');
+            slotGrid.innerHTML = "";
+            for (let i = 0; i < 36; i++) slotGrid.appendChild(document.createElement('button'));
+          };
+        });
+      };
+    }
+  </script>
+</body>
+</html>
